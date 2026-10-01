@@ -2,26 +2,151 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 222 47% 11%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 173 80% 36%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 190 60% 5%;
+    --foreground: 210 40% 98%;
+    --card: 190 50% 7%;
+    --card-foreground: 210 40% 98%;
+    --popover: 190 50% 7%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 190 30% 12%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 190 30% 12%;
+    --muted-foreground: 195 15% 62%;
+    --accent: 190 30% 12%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62% 40%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 190 25% 16%;
+    --input: 190 25% 16%;
+    --ring: 173 80% 36%;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * { @apply border-border; }
+  body { @apply text-foreground antialiased; }
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+/* ---------- SnappRetail Intelligence · login ---------- */
+/* ---------- SnappRetail Intelligence · login ---------- */
+@keyframes shake {
+  10%, 90% { transform: translateX(-2px); }
+  20%, 80% { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-7px); }
+  40%, 60% { transform: translateX(7px); }
 }
+.shake { animation: shake 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+
+@keyframes card-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.card-enter { animation: card-rise 0.5s cubic-bezier(0.2, 0.9, 0.3, 1) both; }
+
+/* deep blue-green gradient — base under the CCTV still + offline fallback */
+.backdrop-base {
+  background:
+    radial-gradient(ellipse 1100px 620px at 18% -12%, #0A3B3A 0%, transparent 60%),
+    radial-gradient(ellipse 900px 640px at 88% 108%, #07333C 0%, transparent 58%),
+    linear-gradient(165deg, #052A2E 0%, #04202B 45%, #03141B 100%);
+}
+
+/* light grade only — the scene stays SHARP and bright enough to refract through the glass */
+.backdrop-scanlines {
+  background: repeating-linear-gradient(0deg, rgba(3, 20, 27, 0.16) 0 1px, transparent 1px 3px);
+  mix-blend-mode: multiply;
+}
+.backdrop-tint {
+  background: linear-gradient(180deg, rgba(4, 18, 26, 0.28) 0%, rgba(3, 16, 24, 0.52) 100%);
+}
+.backdrop-noise {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+}
+.backdrop-vignette {
+  background: radial-gradient(ellipse 1300px 820px at 50% 42%, transparent 32%, rgba(2, 12, 17, 0.62) 100%);
+}
+
+/* specular glint on the glass panel — diagonal light streak + soft top sheen */
+.glass-glint {
+  background-image:
+    linear-gradient(118deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.045) 24%, rgba(255, 255, 255, 0) 46%),
+    radial-gradient(ellipse 72% 42% at 22% -8%, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 70%);
+}
+
+/* ---------- Dashboard ---------- */
+.dash-bg {
+  background:
+    radial-gradient(ellipse 900px 520px at 12% -8%, rgba(10, 59, 58, 0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 800px 560px at 92% 108%, rgba(7, 51, 60, 0.3) 0%, transparent 55%),
+    linear-gradient(165deg, #052A2E 0%, #04202B 45%, #03141B 100%);
+}
+.grid-lines {
+  background-image:
+    linear-gradient(rgba(232, 238, 249, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232, 238, 249, 0.03) 1px, transparent 1px);
+  background-size: 34px 34px;
+}
+
+.pill {
+  display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 10px;
+  border-radius: 999px; font-size: 9.5px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; border: 1px solid;
+}
+.pill-live  { color: #34D399; background: rgba(52, 211, 153, 0.1); border-color: rgba(52, 211, 153, 0.4); }
+.pill-idle  { color: rgba(255, 255, 255, 0.55); background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.15); }
+.pill-amber { color: #FBBF24; background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.4); }
+.pill-red   { color: #F87171; background: rgba(248, 113, 113, 0.1); border-color: rgba(248, 113, 113, 0.4); }
+
+.pdot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pdot-pulse 1.6s infinite; }
+@keyframes pdot-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5); }
+  70% { box-shadow: 0 0 0 6px rgba(52, 211, 153, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+}
+
+@keyframes kpi-bump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+.kpi-bump {
+  animation: kpi-bump 0.5s ease-out;
+  border-color: rgb(var(--k) / 0.45);
+  box-shadow: 0 0 0 1px rgb(var(--k) / 0.25), 0 14px 36px -18px rgb(var(--k) / 0.55);
+}
+
+.chip-peak {
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
+  color: #FBBF24; background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.32); border-radius: 4px; padding: 3px 8px;
+}
+
+::selection { background: rgba(245, 130, 32, 0.35); }
