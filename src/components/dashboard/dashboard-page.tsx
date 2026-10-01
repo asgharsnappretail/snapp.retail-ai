@@ -9,7 +9,7 @@ import { PeakHoursChart } from "./peak-hours-chart";
 import { PosStatusPanel } from "./pos-status-panel";
 import { ScannedVsUnscannedChart } from "./scanned-unscanned-donut";
 import { Topbar } from "./topbar";
-import { TopItemsPanel } from "./top-items-panel";
+// import { TopItemsPanel } from "./top-items-panel";
 import { VideoPanel } from "./video-panel";
 import { useLatestStats } from "@/hooks/use-latest-stats";
 import { clearSession, readSession, type Session } from "@/lib/session";

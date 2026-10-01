@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Cctv } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 
 import { BrandLockup } from "./brand-lockup";
 import { HelpButton } from "./help-button";

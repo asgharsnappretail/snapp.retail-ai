@@ -5,7 +5,7 @@ import { Eye, EyeOff, Loader2, Lock, User } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { BACKEND_ORIGIN, login } from "@/lib/api";
+import { login } from "@/lib/api";
 
 interface LoginFormProps {
   onSuccess: (username: string) => void;

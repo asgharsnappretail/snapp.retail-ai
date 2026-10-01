@@ -1,4 +1,4 @@
-import { Archive, Radio, ScanBarcode, UserCheck, Users } from "lucide-react";
+import { Archive, ScanBarcode, UserCheck, Users } from "lucide-react";
 import type { LatestStats } from "@/types/api";
 
 export function PosStatusPanel({ stats }: { stats: LatestStats | null }) {
