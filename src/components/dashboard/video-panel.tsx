@@ -24,9 +24,10 @@ const WHEP_PILL: Record<WhepStatus, { label: string; cls: string }> = {
 interface VideoPanelProps {
   stats: LatestStats | null;
   onStarted?: () => void;
+  onStopped?: () => void;
 }
 
-export function VideoPanel({ stats, onStarted }: VideoPanelProps) {
+export function VideoPanel({ stats, onStarted , onStopped}: VideoPanelProps) {
   const { status, attachVideo } = useWhep();
   const [zoneOpen, setZoneOpen] = useState(false);
   const [surveillance, setSurveillance] = useState(false);
@@ -66,8 +67,9 @@ export function VideoPanel({ stats, onStarted }: VideoPanelProps) {
     ) {
       setSurveillance(false); // attached session ended elsewhere
       setSession(null);
+      onStopped?.();
     }
-  }, [stats, surveillance, ended, stopping]);
+  }, [stats, surveillance, ended, stopping, onStopped]);
 
   /* First-frame gate: from the moment we enter surveillance (or reconnect),
      show the "Starting…" overlay until the MJPEG delivers its first frame. */
@@ -107,6 +109,7 @@ export function VideoPanel({ stats, onStarted }: VideoPanelProps) {
     } finally {
       setStopping(false);
       setConfirmStop(false);
+      onStopped?.(); 
     }
   }
 
@@ -122,6 +125,7 @@ export function VideoPanel({ stats, onStarted }: VideoPanelProps) {
   function reconnectFeed() {
     setFeedNonce((n) => n + 1);
     setFeedError(false);
+    onStopped?.();
   }
 
   return (

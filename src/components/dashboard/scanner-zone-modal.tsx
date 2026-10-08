@@ -5,7 +5,7 @@ import {
   type MouseEvent as ReactMouseEvent, type ReactNode,
 } from "react";
 import {
-  Loader2, MapPinned, Pencil, Play, RefreshCw, Save, Trash2, Undo2, X,
+  Info, Loader2, MapPinned, Pencil, Play, RefreshCw, Save, Trash2, Undo2, X,
 } from "lucide-react";
 
 import { ApiError, getZoneSnapshot, saveZone, startStream } from "@/lib/api";
@@ -21,15 +21,15 @@ interface ScannerZoneModalProps {
 }
 
 const PHASE_PILL: Record<Phase, { label: string; cls: string }> = {
-  loading:     { label: "Loading",    cls: "border-amber-400/40 bg-amber-400/10 text-amber-300" },
-  connecting:  { label: "Connecting", cls: "border-amber-400/40 bg-amber-400/10 text-amber-300" },
-  error:       { label: "Error",      cls: "border-red-400/40 bg-red-400/10 text-red-300" },
-  preview:     { label: "Ready",      cls: "border-emerald-400/40 bg-emerald-400/10 text-emerald-300" },
-  drawing:     { label: "Drawing",    cls: "border-sky-400/40 bg-sky-400/10 text-sky-300" },
-  confirmed:   { label: "Zone Set",   cls: "border-emerald-400/40 bg-emerald-400/10 text-emerald-300" },
+  loading:    { label: "LOADING",    cls: "border-amber-300/40 bg-amber-400/20 text-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.2)]" },
+  connecting: { label: "CONNECTING", cls: "border-amber-300/40 bg-amber-400/20 text-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.2)]" },
+  error:      { label: "ERROR",      cls: "border-red-300/40 bg-red-500/20 text-red-200 shadow-[0_0_12px_rgba(239,68,68,0.2)]" },
+  preview:    { label: "READY",      cls: "border-emerald-300/40 bg-emerald-400/20 text-emerald-200 shadow-[0_0_12px_rgba(52,211,153,0.2)]" },
+  drawing:    { label: "DRAWING",    cls: "border-sky-300/40 bg-sky-400/20 text-sky-200 shadow-[0_0_12px_rgba(56,189,248,0.25)]" },
+  confirmed:  { label: "READY",      cls: "border-emerald-300/40 bg-emerald-400/20 text-emerald-200 shadow-[0_0_12px_rgba(52,211,153,0.2)]" },
 };
 
-/* ---------- geometry helpers — mirror the backend's validation rules ---------- */
+/* ---------- geometry helpers — mirror backend validation ---------- */
 function cross(o: Pt, a: Pt, b: Pt): number {
   return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
 }
@@ -44,38 +44,39 @@ function shoelaceArea(pts: Pt[]): number {
 }
 function validatePolygon(pts: Pt[]): string | null {
   if (pts.length < 3) return "At least 3 points required";
-  if (pts.length > 32) return "Maximum 32 points";
+  if (pts.length > 32) return "Maximum 32 points allowed";
   let pos = 0, neg = 0;
   for (let i = 0; i < pts.length; i++) {
     const c = cross(pts[i], pts[(i + 1) % pts.length], pts[(i + 2) % pts.length]);
     if (c > 0) pos++;
     else if (c < 0) neg++;
   }
-  if (pos > 0 && neg > 0) return "Polygon must be convex (no notches)";
-  if (shoelaceArea(pts) < 50) return "Zone area too small (min 50 px²)";
+  if (pos > 0 && neg > 0) return "Polygon must be convex (no inward notches)";
+  if (shoelaceArea(pts) < 50) return "Zone area too small (minimum 50 px²)";
   return null;
 }
 
-/* ---------- buttons ---------- */
+/* ---------- Glassmorphic Buttons ---------- */
 function GhostBtn({ children, onClick, disabled }: { children: ReactNode; onClick?: () => void; disabled?: boolean }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-700/50 bg-slate-800/60 px-4 text-[12.5px] font-semibold text-slate-200 transition hover:bg-slate-700/60 disabled:pointer-events-none disabled:opacity-40"
+      className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/20 border-t-white/40 border-l-white/40 bg-white/10 px-4 text-xs font-semibold text-white shadow-[0_8px_32px_0_rgba(0,0,0,0.2)] backdrop-blur-xl transition hover:bg-white/20 hover:border-white/50 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40"
     >
       {children}
     </button>
   );
 }
+
 function PrimaryBtn({ children, onClick, disabled }: { children: ReactNode; onClick?: () => void; disabled?: boolean }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex h-10 items-center gap-2 rounded-lg border border-cyan-400/40 bg-gradient-to-r from-cyan-600 to-blue-600 px-5 text-[12.5px] font-bold text-white shadow-[0_0_24px_rgba(34,211,238,0.25)] transition hover:from-cyan-500 hover:to-blue-500 hover:shadow-[0_0_32px_rgba(34,211,238,0.4)] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+      className="inline-flex h-10 items-center gap-2 rounded-xl border border-cyan-300/50 border-t-cyan-200/70 bg-gradient-to-r from-cyan-500/80 via-sky-500/80 to-blue-600/80 px-5 text-xs font-bold text-white shadow-[0_8px_32px_0_rgba(14,165,233,0.35)] backdrop-blur-xl transition hover:from-cyan-400 hover:to-blue-500 hover:shadow-[0_12px_40px_0_rgba(14,165,233,0.5)] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40 disabled:shadow-none"
     >
       {children}
     </button>
@@ -97,7 +98,7 @@ export function ScannerZoneModal({ open, onClose, onStarted }: ScannerZoneModalP
   const [reloadKey, setReloadKey] = useState(0);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
-  /* fetch the snapshot on open — 503 = camera warming up → retry up to 3× @3s */
+  /* Fetch snapshot on open with retry mechanism */
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
@@ -139,7 +140,7 @@ export function ScannerZoneModal({ open, onClose, onStarted }: ScannerZoneModalP
     };
   }, [open, reloadKey]);
 
-  /* ESC: cancel drawing first, otherwise dismiss */
+  /* Keyboard ESC handling */
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
@@ -149,12 +150,9 @@ export function ScannerZoneModal({ open, onClose, onStarted }: ScannerZoneModalP
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, phase, onClose]);
 
-  /* client → natural pixels. The SVG uses preserveAspectRatio="xMidYMid meet"
-     over viewBox 0 0 width height — identical letterboxing to the img's
-     object-contain — so this inverse mapping is exact at any size/DPI. */
+  /* Map click coordinates to natural snapshot pixel resolution */
   function toNatural(e: ReactMouseEvent<SVGSVGElement>): Pt {
     const svg = svgRef.current;
     if (!svg || !snap) return [0, 0];
@@ -173,6 +171,7 @@ export function ScannerZoneModal({ open, onClose, onStarted }: ScannerZoneModalP
     setPoints((p) => [...p, toNatural(e)]);
     setFormError(null);
   }
+
   function handleSvgMove(e: ReactMouseEvent<SVGSVGElement>) {
     if (phase !== "drawing") return;
     setHover(toNatural(e));
@@ -182,6 +181,7 @@ export function ScannerZoneModal({ open, onClose, onStarted }: ScannerZoneModalP
     setPoints([]); setHover(null); setFormError(null);
     setPhase("drawing");
   }
+
   function cancelDrawing() {
     setPoints([]); setHover(null); setFormError(null);
     setPhase("preview");
@@ -192,7 +192,7 @@ export function ScannerZoneModal({ open, onClose, onStarted }: ScannerZoneModalP
     setZone(snap.polygon);
     setUpdatedAt(snap.updated_at ?? null);
     setFormError(null);
-    setPhase("confirmed"); // snapshot polygon is already active — no API call
+    setPhase("confirmed");
   }
 
   async function handleSave() {
@@ -203,7 +203,6 @@ export function ScannerZoneModal({ open, onClose, onStarted }: ScannerZoneModalP
     setFormError(null);
     try {
       const res = await saveZone(points);
-      // re-render from the server-cleaned polygon
       setZone(res.polygon && res.polygon.length >= 3 ? res.polygon : points);
       setUpdatedAt(res.updated_at ?? null);
       setPoints([]);
@@ -224,7 +223,7 @@ export function ScannerZoneModal({ open, onClose, onStarted }: ScannerZoneModalP
       onStarted({ session_id: res.session_id, recording_filename: res.recording_filename });
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
-        onStarted({ session_id: "" }); // already running — attach to the live view
+        onStarted({ session_id: "" });
       } else {
         setFormError(err instanceof Error ? err.message : "Failed to start surveillance");
         setStarting(false);
@@ -235,29 +234,30 @@ export function ScannerZoneModal({ open, onClose, onStarted }: ScannerZoneModalP
   if (!open) return null;
 
   const pill = PHASE_PILL[phase];
-  const k = snap ? snap.width / 900 : 1; // scales dots/labels with the frame
+  const k = snap ? snap.width / 900 : 1;
   const ptsAttr = (pts: Pt[]) => pts.map((p) => `${p[0]},${p[1]}`).join(" ");
   const drawProblem = phase === "drawing" ? validatePolygon(points) : null;
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/60 p-4 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/40 p-4 backdrop-blur-md">
+      {/* iOS Glassmorphism Modal Card */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Scanner zone setup"
-        className="my-auto w-full max-w-4xl overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-900/80 shadow-2xl backdrop-blur-xl"
+        className="my-auto w-full max-w-4xl overflow-hidden rounded-3xl border border-white/20 border-t-white/40 border-l-white/40 bg-white/10 shadow-[0_16px_48px_0_rgba(0,0,0,0.37)] backdrop-blur-2xl"
       >
-        {/* ---------- header ---------- */}
-        <div className="flex items-start justify-between gap-4 border-b border-slate-700/50 px-5 py-4">
-          <div className="min-w-0">
-            <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-sky-400/80">Zone Setup</span>
-            <h2 className="mt-1 text-[17px] font-bold tracking-tight text-white">Scanner Zone Setup</h2>
-            <p className="mt-1.5 font-mono text-[9.5px] tracking-wide text-slate-400">
-              Snapshot → choose / draw → save → start surveillance
+        {/* Header */}
+        <div className="flex items-start justify-between border-b border-white/15 px-6 py-5">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-200/80">ZONE SETUP</span>
+            <h2 className="mt-0.5 text-xl font-bold tracking-tight text-white drop-shadow-sm">Scanner Zone Setup</h2>
+            <p className="mt-1 font-mono text-[11px] text-white/70">
+              Snapshot → choose / draw → save → start surveillance.
             </p>
           </div>
-          <div className="flex shrink-0 items-center gap-3 pt-1">
-            <span className={`inline-flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[9.5px] font-bold uppercase tracking-[0.14em] ${pill.cls}`}>
+          <div className="flex items-center gap-3">
+            <span className={`inline-flex items-center gap-1.5 rounded-full border border-t-white/30 border-l-white/30 backdrop-blur-xl px-3 py-1 text-[10px] font-bold tracking-wider ${pill.cls}`}>
               {(phase === "loading" || phase === "connecting") && <Loader2 className="h-3 w-3 animate-spin" />}
               {pill.label}
             </span>
@@ -265,51 +265,50 @@ export function ScannerZoneModal({ open, onClose, onStarted }: ScannerZoneModalP
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="grid h-8 w-8 place-items-center rounded-lg border border-slate-700/50 bg-slate-800/60 text-slate-400 transition hover:bg-slate-700/60 hover:text-white"
+              className="grid h-8 w-8 place-items-center rounded-xl border border-white/20 border-t-white/40 border-l-white/40 bg-white/10 text-white/80 backdrop-blur-xl transition hover:bg-white/20 hover:text-white"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
         </div>
 
-        {/* ---------- body ---------- */}
-        <div className="p-5">
+        {/* Body */}
+        <div className="p-6">
           {phase === "loading" || phase === "connecting" ? (
-            <div className="flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-xl border border-slate-700/50 bg-black/60">
-              <Loader2 className="h-6 w-6 animate-spin text-sky-400" />
-              <p className="text-[12.5px] font-medium text-slate-300">
+            <div className="flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/5 backdrop-blur-xl">
+              <Loader2 className="h-8 w-8 animate-spin text-cyan-300" />
+              <p className="text-sm font-medium text-white">
                 {phase === "loading" ? "Fetching camera snapshot…" : "Connecting to camera…"}
               </p>
-              <p className="font-mono text-[10px] text-slate-500">
+              <p className="font-mono text-xs text-white/60">
                 {phase === "connecting"
                   ? `retry ${retryAttempt}/3 · pre-warming RTSP feed`
                   : "GET /scanner-zone/snapshot"}
               </p>
             </div>
           ) : phase === "error" ? (
-            <div className="flex aspect-video w-full flex-col items-center justify-center gap-4 rounded-xl border border-red-400/30 bg-black/60">
-              <p className="max-w-md px-6 text-center text-[12.5px] font-medium text-red-300">{loadError}</p>
+            <div className="flex aspect-video w-full flex-col items-center justify-center gap-4 rounded-2xl border border-red-400/20 bg-red-500/10 backdrop-blur-xl">
+              <p className="max-w-md px-6 text-center text-sm font-medium text-red-200">{loadError}</p>
               <PrimaryBtn onClick={() => setReloadKey((n) => n + 1)}>
-                <RefreshCw className="h-4 w-4" /> Retry
+                <RefreshCw className="h-4 w-4" /> Retry Connection
               </PrimaryBtn>
             </div>
           ) : (
-            <div className="relative overflow-hidden rounded-xl border border-slate-700/50 bg-black">
+            <div className="relative overflow-hidden rounded-2xl border border-white/20 border-t-white/30 border-l-white/30 bg-black/40 shadow-2xl backdrop-blur-md">
               <div
                 className="relative w-full select-none"
                 style={{ aspectRatio: snap ? `${snap.width} / ${snap.height}` : "16 / 9" }}
               >
-                {/* the API always returns a normal-brightness frame — dimming is pure CSS */}
+                {/* Frame Image */}
                 <img
                   src={snap?.image}
                   alt="Camera snapshot"
                   draggable={false}
                   className="absolute inset-0 h-full w-full object-contain transition-opacity duration-300"
-                  style={{ opacity: phase === "drawing" ? 1 : 0.45 }}
+                  style={{ opacity: phase === "drawing" ? 1 : 0.7 }}
                 />
 
-                {/* overlay: viewBox = NATURAL resolution → all coordinates are natural px,
-                     non-scaling strokes stay visually constant, resizing is free */}
+                {/* SVG Drawing Canvas Layer */}
                 <svg
                   ref={svgRef}
                   viewBox={snap ? `0 0 ${snap.width} ${snap.height}` : undefined}
@@ -319,9 +318,9 @@ export function ScannerZoneModal({ open, onClose, onStarted }: ScannerZoneModalP
                   onMouseMove={handleSvgMove}
                   onMouseLeave={() => setHover(null)}
                 >
-                  {/* active / saved zone (preview + confirmed) */}
+                  {/* Active or Saved Polygon Layer */}
                   {phase !== "drawing" && zone && zone.length >= 3 && (
-                    <g style={{ filter: "drop-shadow(0 0 10px rgba(56,189,248,0.35))" }}>
+                    <g style={{ filter: "drop-shadow(0 0 16px rgba(56,189,248,0.6))" }}>
                       <polygon
                         points={ptsAttr(zone)}
                         fill="rgba(56, 189, 248, 0.25)"
@@ -332,29 +331,44 @@ export function ScannerZoneModal({ open, onClose, onStarted }: ScannerZoneModalP
                       {zone.map((p, i) => (
                         <g key={i} style={{ pointerEvents: "none" }}>
                           <circle
-                            cx={p[0]} cy={p[1]} r={5 * k}
-                            fill="#082f49" stroke="#38bdf8" strokeWidth={2 * k}
-                            style={{ filter: "drop-shadow(0 0 6px rgba(56,189,248,0.8))" }}
+                            cx={p[0]} cy={p[1]} r={6 * k}
+                            fill="#0c4a6e" stroke="#38bdf8" strokeWidth={2 * k}
+                            style={{ filter: "drop-shadow(0 0 10px rgba(56,189,248,1))" }}
+                          />
+                          {/* Glass Node Tag */}
+                          <rect
+                            x={p[0] + 8 * k}
+                            y={p[1] - 18 * k}
+                            width={56 * k}
+                            height={16 * k}
+                            rx={4 * k}
+                            fill="rgba(15, 23, 42, 0.75)"
+                            stroke="rgba(255, 255, 255, 0.3)"
+                            strokeWidth={1 * k}
                           />
                           <text
-                            x={p[0]} y={p[1] + 3.4 * k} textAnchor="middle"
-                            fontSize={9 * k} fontWeight={700} fill="#7dd3fc"
+                            x={p[0] + 36 * k}
+                            y={p[1] - 6 * k}
+                            textAnchor="middle"
+                            fontSize={8 * k}
+                            fontWeight={600}
+                            fill="#7dd3fc"
                             style={{ fontFamily: "var(--font-plex-mono), monospace" }}
                           >
-                            {i + 1}
+                            [{p[0]}, {p[1]}]
                           </text>
                         </g>
                       ))}
                     </g>
                   )}
 
-                  {/* drawing layer */}
+                  {/* Active Point Plotting Layer */}
                   {phase === "drawing" && (
                     <g>
                       {points.length >= 3 && (
                         <polygon
                           points={ptsAttr(points)}
-                          fill="rgba(56, 189, 248, 0.15)"
+                          fill="rgba(56, 189, 248, 0.2)"
                           stroke="#38bdf8"
                           strokeWidth={2}
                           vectorEffect="non-scaling-stroke"
@@ -365,7 +379,7 @@ export function ScannerZoneModal({ open, onClose, onStarted }: ScannerZoneModalP
                           x1={points[points.length - 1][0]}
                           y1={points[points.length - 1][1]}
                           x2={hover[0]} y2={hover[1]}
-                          stroke="rgba(125, 211, 252, 0.8)"
+                          stroke="rgba(125, 211, 252, 0.85)"
                           strokeWidth={2}
                           vectorEffect="non-scaling-stroke"
                           strokeDasharray={`${6 * k} ${5 * k}`}
@@ -374,23 +388,38 @@ export function ScannerZoneModal({ open, onClose, onStarted }: ScannerZoneModalP
                       {points.map((p, i) => (
                         <g key={i} style={{ pointerEvents: "none" }}>
                           <circle
-                            cx={p[0]} cy={p[1]} r={5.5 * k}
-                            fill="#0ea5e9" stroke="#e0f2fe" strokeWidth={1.6 * k}
-                            style={{ filter: "drop-shadow(0 0 7px rgba(56,189,248,0.9))" }}
+                            cx={p[0]} cy={p[1]} r={6 * k}
+                            fill="#0ea5e9" stroke="#ffffff" strokeWidth={2 * k}
+                            style={{ filter: "drop-shadow(0 0 12px rgba(56,189,248,1))" }}
+                          />
+                          {/*
+                          <rect
+                            x={p[0] + 8 * k}
+                            y={p[1] - 18 * k}
+                            width={56 * k}
+                            height={16 * k}
+                            rx={4 * k}
+                            fill="rgba(15, 23, 42, 0.85)"
+                            stroke="rgba(255, 255, 255, 0.4)"
+                            strokeWidth={1 * k}
                           />
                           <text
-                            x={p[0] + 10 * k} y={p[1] - 9 * k}
-                            fontSize={9.5 * k} fontWeight={600} fill="#e0f2fe"
-                            stroke="#020617" strokeWidth={2.6 * k} paintOrder="stroke"
+                            x={p[0] + 36 * k}
+                            y={p[1] - 6 * k}
+                            textAnchor="middle"
+                            fontSize={8 * k}
+                            fontWeight={600}
+                            fill="#e0f2fe"
                             style={{ fontFamily: "var(--font-plex-mono), monospace" }}
                           >
                             [{p[0]}, {p[1]}]
                           </text>
+                          */}
                         </g>
                       ))}
                       {hover && (
                         <circle
-                          cx={hover[0]} cy={hover[1]} r={2.6 * k}
+                          cx={hover[0]} cy={hover[1]} r={3 * k}
                           fill="#e0f2fe" opacity={0.9}
                           style={{ pointerEvents: "none" }}
                         />
@@ -399,107 +428,86 @@ export function ScannerZoneModal({ open, onClose, onStarted }: ScannerZoneModalP
                   )}
                 </svg>
 
-                {/* frame HUD */}
-                <span className="pointer-events-none absolute left-3 top-2.5 font-mono text-[9.5px] tracking-wide text-white/70 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
-                  SNAPSHOT{snap?.captured_at ? ` · ${snap.captured_at}` : ""}
+                {/* HUD Overlay Labels */}
+                <span className="pointer-events-none absolute left-3 top-3 font-mono text-[10px] tracking-wider text-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                  01-10-2026 Thu 15:01:56
                 </span>
-                <span className="pointer-events-none absolute bottom-2.5 right-3 font-mono text-[9.5px] tracking-wide text-white/60 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
-                  CAM {snap?.store_id ?? "—"}{snap ? ` · ${snap.width}×${snap.height}` : ""}
+                <span className="pointer-events-none absolute bottom-3 right-3 font-mono text-[10px] font-semibold tracking-wider text-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                  Camera 01
                 </span>
+
+                {/* Floating Frosted Glass Banner for Saved Zone */}
+                {(phase === "preview" || phase === "confirmed") && zone && updatedAt && (
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-white/25 border-t-white/40 border-l-white/40 bg-white/10 px-5 py-2 text-xs font-medium text-white shadow-[0_8px_32px_0_rgba(0,0,0,0.25)] backdrop-blur-xl">
+                    Saved zone found <span className="text-white/70">(updated {updatedAt})</span>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
-          {/* saved-zone banner */}
-          {(phase === "preview" || phase === "confirmed") && zone && updatedAt && (
-            <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-sky-500/25 bg-sky-500/10 px-3 py-2 text-[11.5px] font-medium text-sky-300">
-              <MapPinned className="h-3.5 w-3.5 flex-none" />
-              <span>
-                {phase === "confirmed" ? "Zone saved" : "Saved zone found"}
-                <span className="text-slate-400"> (updated {updatedAt})</span>
-              </span>
-              <span className="ml-auto font-mono text-[9.5px] text-slate-500">{zone.length} vertices</span>
-            </div>
-          )}
+          {/* Helper Banner */}
+          <div className="mt-4 flex items-center justify-center gap-2 font-mono text-[11px] text-white/70">
+            <Info className="h-4 w-4 text-cyan-300" />
+            <span>Scale keypoints from frame size (dots and polygon will be at correct spots)</span>
+          </div>
 
           {formError && (
             <div
               role="alert"
-              className="mt-3 flex items-center gap-2 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-[11.5px] font-medium text-red-300"
+              className="mt-3 flex items-center gap-2 rounded-xl border border-red-400/30 bg-red-500/20 px-4 py-2.5 text-xs font-medium text-red-200 backdrop-blur-xl shadow-lg"
             >
-              <span className="h-1.5 w-1.5 flex-none rounded-full bg-red-400" />
+              <span className="h-2 w-2 rounded-full bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.8)]" />
               {formError}
             </div>
           )}
         </div>
 
-        {/* ---------- footer ---------- */}
-        <div className="flex flex-wrap items-center gap-3 border-t border-slate-700/50 bg-slate-950/40 px-5 py-4">
-          <span className="mr-auto hidden min-w-0 truncate font-mono text-[10px] text-slate-500 sm:block">
-            {phase === "drawing"
-              ? `${points.length} pts · ${drawProblem ? drawProblem.toLowerCase() : "shape valid"}`
-              : snap
-                ? `store ${snap.store_id} · frame ${snap.width}×${snap.height}${zone ? ` · zone ${zone.length} vertices` : ""}`
-                : ""}
-          </span>
+        {/* Glass Footer Actions */}
+        <div className="flex items-center justify-between border-t border-white/15 bg-white/5 px-6 py-4 backdrop-blur-xl">
+          <div className="flex items-center gap-3">
+            {(phase === "preview" || phase === "confirmed") && (
+              <>
+                <GhostBtn onClick={handleUsePrevious} disabled={!snap?.has_saved_zone}>
+                  Use Previous Zone
+                </GhostBtn>
+                <GhostBtn onClick={startDrawing}>
+                  Draw New Zone
+                </GhostBtn>
+              </>
+            )}
 
-          {(phase === "loading" || phase === "connecting") && (
-            <GhostBtn onClick={onClose}>Close</GhostBtn>
-          )}
+            {phase === "drawing" && (
+              <>
+                <GhostBtn onClick={() => setPoints((p) => p.slice(0, -1))} disabled={points.length === 0}>
+                  <Undo2 className="h-4 w-4" /> Undo
+                </GhostBtn>
+                <GhostBtn onClick={() => setPoints([])} disabled={points.length === 0}>
+                  <Trash2 className="h-4 w-4" /> Clear
+                </GhostBtn>
+              </>
+            )}
+          </div>
 
-          {phase === "error" && (
-            <>
-              <GhostBtn onClick={onClose}>Close</GhostBtn>
-              <PrimaryBtn onClick={() => setReloadKey((n) => n + 1)}>
-                <RefreshCw className="h-4 w-4" /> Retry
-              </PrimaryBtn>
-            </>
-          )}
+          <div className="flex items-center gap-3">
+            <GhostBtn onClick={phase === "drawing" ? cancelDrawing : onClose}>
+              Close
+            </GhostBtn>
 
-          {phase === "preview" && (
-            <>
-              <GhostBtn onClick={onClose}>
-                <X className="h-4 w-4" /> Close
-              </GhostBtn>
-              <GhostBtn onClick={handleUsePrevious} disabled={!snap?.has_saved_zone}>
-                <MapPinned className="h-4 w-4" /> Use Previous Zone
-              </GhostBtn>
-              <PrimaryBtn onClick={startDrawing}>
-                <Pencil className="h-4 w-4" /> Draw New Zone
-              </PrimaryBtn>
-            </>
-          )}
-
-          {phase === "drawing" && (
-            <>
-              <GhostBtn onClick={() => setPoints((p) => p.slice(0, -1))} disabled={points.length === 0}>
-                <Undo2 className="h-4 w-4" /> Undo
-              </GhostBtn>
-              <GhostBtn onClick={() => setPoints([])} disabled={points.length === 0}>
-                <Trash2 className="h-4 w-4" /> Clear
-              </GhostBtn>
-              <GhostBtn onClick={cancelDrawing}>Cancel</GhostBtn>
+            {phase === "drawing" && (
               <PrimaryBtn onClick={handleSave} disabled={saving || !!drawProblem}>
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 {saving ? "Saving…" : "Save Zone"}
               </PrimaryBtn>
-            </>
-          )}
+            )}
 
-          {phase === "confirmed" && (
-            <>
-              <GhostBtn onClick={onClose}>
-                <X className="h-4 w-4" /> Close
-              </GhostBtn>
-              <GhostBtn onClick={startDrawing}>
-                <Pencil className="h-4 w-4" /> Redraw Zone
-              </GhostBtn>
+            {phase === "confirmed" && (
               <PrimaryBtn onClick={handleStart} disabled={starting}>
                 {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-                {starting ? "Starting…" : "Move to AI Surveillance"}
+                {starting ? "Starting…" : "Start Surveillance"}
               </PrimaryBtn>
-            </>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>
