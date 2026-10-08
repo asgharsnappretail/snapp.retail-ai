@@ -5,13 +5,49 @@ import type { LucideIcon } from "lucide-react";
 
 export type KpiTone = "green" | "amber" | "red" | "teal" | "orange" | "neutral";
 
-const TONES: Record<KpiTone, { text: string; k: string }> = {
-  green: { text: "text-emerald-300", k: "52 211 153" },
-  amber: { text: "text-amber-300", k: "251 191 36" },
-  red: { text: "text-red-400", k: "248 113 113" },
-  teal: { text: "text-teal-300", k: "45 212 191" },
-  orange: { text: "text-brand-orange", k: "245 130 32" },
-  neutral: { text: "text-white", k: "232 238 249" },
+const TONES: Record<KpiTone, { text: string; bg: string; border: string; glow: string; k: string }> = {
+  green: {
+    text: "text-emerald-200",
+    bg: "bg-emerald-400/15",
+    border: "border-emerald-300/30",
+    glow: "shadow-[0_0_15px_rgba(52,211,153,0.15)]",
+    k: "52 211 153",
+  },
+  amber: {
+    text: "text-amber-200",
+    bg: "bg-amber-400/15",
+    border: "border-amber-300/30",
+    glow: "shadow-[0_0_15px_rgba(251,191,36,0.15)]",
+    k: "251 191 36",
+  },
+  red: {
+    text: "text-red-200",
+    bg: "bg-red-500/15",
+    border: "border-red-300/30",
+    glow: "shadow-[0_0_15px_rgba(239,68,68,0.15)]",
+    k: "239 68 68",
+  },
+  teal: {
+    text: "text-cyan-200",
+    bg: "bg-cyan-400/15",
+    border: "border-cyan-300/30",
+    glow: "shadow-[0_0_15px_rgba(34,211,238,0.15)]",
+    k: "34 211 238",
+  },
+  orange: {
+    text: "text-orange-200",
+    bg: "bg-orange-400/15",
+    border: "border-orange-300/30",
+    glow: "shadow-[0_0_15px_rgba(251,146,60,0.15)]",
+    k: "251 146 60",
+  },
+  neutral: {
+    text: "text-slate-200",
+    bg: "bg-slate-400/15",
+    border: "border-slate-300/30",
+    glow: "shadow-[0_0_15px_rgba(203,213,225,0.1)]",
+    k: "203 213 225",
+  },
 };
 
 interface KpiCardProps {
@@ -23,12 +59,11 @@ interface KpiCardProps {
 }
 
 export function KpiCard({ label, value, icon: Icon, tone, loading }: KpiCardProps) {
-  const { text, k } = TONES[tone];
+  const { text, bg, border, glow, k } = TONES[tone];
   const [delta, setDelta] = useState<number | null>(null);
   const [bump, setBump] = useState(false);
   const prevRef = useRef<number | undefined>(value);
 
-  // flash + delta chip when the polled value increases
   useEffect(() => {
     const prev = prevRef.current;
     prevRef.current = value;
@@ -37,29 +72,42 @@ export function KpiCard({ label, value, icon: Icon, tone, loading }: KpiCardProp
       setBump(true);
       const t1 = setTimeout(() => setBump(false), 550);
       const t2 = setTimeout(() => setDelta(null), 4000);
-      return () => { clearTimeout(t1); clearTimeout(t2); };
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
     }
   }, [value]);
 
   return (
     <div
-      className={`relative rounded-xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur-xl transition-[box-shadow,border-color] duration-300 ${bump ? "kpi-bump" : ""}`}
+      className={`relative overflow-hidden rounded-2xl border border-white/20 border-t-white/40 border-l-white/40 bg-white/10 p-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.25)] backdrop-blur-2xl transition-all duration-300 hover:bg-white/15 ${
+        bump ? "scale-[1.02] border-white/60" : ""
+      }`}
       style={{ "--k": k } as CSSProperties}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="truncate text-[10px] font-semibold uppercase tracking-[0.12em] text-white/45">{label}</span>
-        <Icon className="h-4 w-4 flex-none text-white/30" />
+        <span className="truncate text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">
+          {label}
+        </span>
+        <div className={`grid h-7 w-7 place-items-center rounded-xl border ${border} ${bg} ${glow} backdrop-blur-md`}>
+          <Icon className={`h-3.5 w-3.5 ${text}`} />
+        </div>
       </div>
-      <div className="mt-3 flex items-baseline gap-2">
+      <div className="mt-3">
         {loading ? (
-          <span className="block h-7 w-16 animate-pulse rounded-md bg-white/10" />
+          <span className="block h-[38px] w-24 animate-pulse rounded-xl border border-white/20 bg-white/10" />
         ) : (
-          <span className={`font-mono text-[28px] font-bold leading-none tracking-tight ${text}`}>
-            {typeof value === "number" ? value.toLocaleString() : "—"}
-          </span>
-        )}
-        {delta !== null && (
-          <span className={`font-mono text-[11px] font-bold ${text}`}>+{delta}</span>
+          <div className="flex items-baseline gap-2 font-mono">
+            <span className={`text-2xl font-black tracking-tight ${text} drop-shadow-sm`}>
+              {typeof value === "number" ? value.toLocaleString() : "—"}
+            </span>
+            {delta !== null && (
+              <span className={`text-xs font-bold ${text} opacity-80 animate-bounce`}>
+                +{delta}
+              </span>
+            )}
+          </div>
         )}
       </div>
     </div>

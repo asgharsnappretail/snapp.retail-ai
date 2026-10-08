@@ -29,24 +29,30 @@ export function PosStatusPanel({ stats }: { stats: LatestStats | null }) {
           <dt className="flex items-center gap-2.5 text-[12px] text-white/55">
             <UserCheck className="h-3.5 w-3.5 text-white/30" /> Cashiers at POS
           </dt>
-          <dd className="font-mono text-[12px] font-semibold text-white/85">
-            {stats ? `${stats.cashiers_at_pos_live} / ${stats.total_no_of_cashiers}` : "—"}
+          <dd>
+            <span className="value-tag value-tag-sm">
+              {stats ? `${stats.cashiers_at_pos_live} / ${stats.total_no_of_cashiers}` : "—"}
+            </span>
           </dd>
         </div>
         <div className="flex items-center justify-between py-2.5">
           <dt className="flex items-center gap-2.5 text-[12px] text-white/55">
             <Users className="h-3.5 w-3.5 text-white/30" /> Total Staff
           </dt>
-          <dd className="font-mono text-[12px] font-semibold text-white/85">
-            {stats ? stats.total_no_of_staff.toLocaleString() : "—"}
+          <dd>
+            <span className="value-tag value-tag-sm">
+              {stats ? stats.total_no_of_staff.toLocaleString() : "—"}
+            </span>
           </dd>
         </div>
         <div className="flex items-center justify-between py-2.5">
           <dt className="flex items-center gap-2.5 text-[12px] text-white/55">
             <ScanBarcode className="h-3.5 w-3.5 text-white/30" /> Top-Item Scans
           </dt>
-          <dd className="font-mono text-[12px] font-semibold text-white/85">
-            {stats ? stats.transactions_with_top_items.toLocaleString() : "—"}
+          <dd>
+            <span className="value-tag value-tag-sm">
+              {stats ? stats.transactions_with_top_items.toLocaleString() : "—"}
+            </span>
           </dd>
         </div>
       </dl>

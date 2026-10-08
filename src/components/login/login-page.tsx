@@ -42,57 +42,43 @@ export function LoginPage() {
   const clearError = useCallback(() => setError(null), []);
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#03141B] px-4 py-10">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 px-4 py-10 text-slate-100">
       <SurveillanceBackdrop />
 
-      {/* GLASS PANEL — frosted translucent fill, heavy backdrop blur + saturation (refraction),
-          thin distinct white stroke, inner top edge highlight */}
+      {/* Modern iOS Glassmorphic Card Container */}
       <div
-        className={`card-enter relative z-10 w-full max-w-[420px] rounded-2xl border border-white/50 bg-white/[0.07] px-9 pb-7 pt-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_32px_80px_-24px_rgba(0,0,0,0.55)] backdrop-blur-2xl backdrop-brightness-90 backdrop-saturate-150 ${
+        className={`relative z-10 w-full max-w-[420px] rounded-3xl border border-white/20 border-t-white/40 border-l-white/40 bg-white/10 px-9 pb-8 pt-10 shadow-[0_16px_48px_0_rgba(0,0,0,0.37)] backdrop-blur-2xl transition-transform duration-300 ${
           shaking ? "shake" : ""
         }`}
       >
-        {/* specular glint + frosted micro-grain — sit under the content */}
-        <div aria-hidden className="glass-glint pointer-events-none absolute inset-0 rounded-2xl" />
-        <div aria-hidden className="backdrop-noise pointer-events-none absolute inset-0 rounded-2xl opacity-[0.05]" />
+        {/* Specular glint overlay */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-60" />
 
         <div className="relative z-10">
           <div className="flex flex-col items-center text-center">
             <BrandLockup />
-            <h1 className="mt-6 text-[27px] font-bold leading-tight tracking-tight text-white">
+            <h1 className="mt-6 text-2xl font-black tracking-tight text-white drop-shadow-sm">
               AI Surveillance System
             </h1>
-            <p className="mt-1.5 text-[13px] font-medium">
-              <span className="font-semibold text-brand-orange">Snapp</span>
-              <span className="font-semibold text-brand-red">Retail</span>
-              <span className="mx-1.5 text-white/30">×</span>
-              <span className="text-white/70">PSO</span>
+            <p className="mt-1.5 text-xs font-semibold tracking-wide">
+              <span className="text-brand-orange">Snapp</span>
+              <span className="text-brand-red">Retail</span>
+              <span className="mx-2 text-white/30">×</span>
+              <span className="text-white/80">PSO</span>
             </p>
           </div>
 
           {error && (
             <div
               role="alert"
-              className="mt-6 flex items-center gap-2 rounded-lg border border-red-400/25 bg-red-500/10 px-3.5 py-2.5 text-[13px] font-medium text-red-300"
+              className="mt-6 flex items-center gap-2.5 rounded-2xl border border-red-400/30 bg-red-500/20 px-4 py-3 text-xs font-medium text-red-200 backdrop-blur-xl shadow-lg"
             >
-              <AlertCircle className="h-4 w-4 flex-none" />
+              <AlertCircle className="h-4 w-4 flex-none text-red-300" />
               <span>{error}</span>
             </div>
           )}
 
           <LoginForm onSuccess={handleSuccess} onError={handleError} onActivity={clearError} />
-
-          {/* <div className="mt-6 border-t border-white/10 pt-4">
-            <p className="flex items-center justify-center gap-2 text-[10.5px] font-medium uppercase tracking-[0.14em] text-white/40">
-              <Cctv className="h-3.5 w-3.5" />
-              <span>
-                Powered by{" "}
-                <span className="text-brand-orange">Snapp</span>
-                <span className="text-brand-red">Retail</span>{" "}
-                AI Surveillance Technology
-              </span>
-            </p>
-          </div> */}
         </div>
       </div>
 

@@ -3,7 +3,7 @@ import Image from "next/image";
 export function BrandLockup() {
   return (
     <div className="flex items-center justify-center gap-3.5">
-      <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-white/5 ring-1 ring-white/20">
+      <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full border border-white/30 border-t-white/50 bg-white/15 shadow-sm backdrop-blur-md">
         <Image
           src="/pso-logo.png"
           alt="PSO"
@@ -13,7 +13,7 @@ export function BrandLockup() {
           className="h-full w-full object-contain"
         />
       </span>
-      <div className="text-[24px] font-extrabold leading-none tracking-tight">
+      <div className="text-[26px] font-black leading-none tracking-tight">
         <span className="text-brand-orange">Snapp</span>
         <span className="text-brand-red">Retail</span>
       </div>

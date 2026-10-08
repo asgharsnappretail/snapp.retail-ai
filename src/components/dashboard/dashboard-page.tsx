@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 import { CashVsBankChart } from "./cash-bank-donut";
 import { KpiGrid } from "./kpi-grid";
@@ -27,14 +28,14 @@ export function DashboardPage() {
     if (session === null) router.replace("/login");
   }, [session, router]);
 
-  // surveillance began → open the polling gate (immediate + warm-up rechecks)
+  // Surveillance began -> open polling gate
   const handleStarted = useCallback(() => {
     start();
     window.setTimeout(refresh, 2_500);
     window.setTimeout(refresh, 6_000);
   }, [start, refresh]);
 
-  // surveillance ended → close the gate, /latest-stats hits stop
+  // Surveillance ended -> stop polling gate
   const handleStopped = useCallback(() => {
     stop();
   }, [stop]);
@@ -46,16 +47,24 @@ export function DashboardPage() {
 
   if (session === "checking") {
     return (
-      <main className="grid min-h-screen place-items-center bg-[#03141B]">
-        <span className="text-[13px] text-white/50">Loading session…</span>
+      <main className="grid min-h-screen place-items-center bg-slate-950">
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-white/20 border-t-white/40 bg-white/10 p-8 shadow-[0_16px_48px_0_rgba(0,0,0,0.37)] backdrop-blur-2xl">
+          <Loader2 className="h-7 w-7 animate-spin text-cyan-300" />
+          <span className="text-sm font-semibold text-white/80">Loading session…</span>
+        </div>
       </main>
     );
   }
   if (!session) return null;
 
   return (
-    <main className="dash-bg relative min-h-screen">
-      <div aria-hidden className="grid-lines pointer-events-none fixed inset-0" />
+    <main className="relative min-h-screen bg-slate-950 text-slate-100">
+      {/* Background ambient light effects */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-cyan-500/15 blur-[120px]" />
+        <div className="absolute -right-40 top-1/3 h-[500px] w-[500px] rounded-full bg-blue-600/15 blur-[120px]" />
+        <div className="absolute bottom-10 left-1/3 h-[400px] w-[400px] rounded-full bg-teal-500/10 blur-[100px]" />
+      </div>
 
       <Topbar
         username={session.username}
@@ -68,7 +77,7 @@ export function DashboardPage() {
         onLogout={handleLogout}
       />
 
-      <div className="relative mx-auto flex max-w-[1440px] flex-col gap-5 px-5 pb-14 pt-6">
+      <div className="relative mx-auto flex max-w-[1440px] flex-col gap-6 px-6 pb-14 pt-6">
         <VideoPanel stats={stats} onStarted={handleStarted} onStopped={handleStopped} />
 
         {stats === null && !live ? (
@@ -76,7 +85,7 @@ export function DashboardPage() {
         ) : (
           <>
             <KpiGrid stats={stats} />
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
               <ScannedVsUnscannedChart stats={stats} />
               <CashVsBankChart stats={stats} />
               <PosStatusPanel stats={stats} />
@@ -85,9 +94,9 @@ export function DashboardPage() {
           </>
         )}
 
-        <p className="text-center font-mono text-[9.5px] tracking-[0.18em] text-white/25">
-          <span className="text-brand-orange/60">SNAPP</span>
-          <span className="text-brand-red/60">RETAIL</span>
+        <p className="text-center font-mono text-[10px] font-bold tracking-[0.25em] text-white/30">
+          <span className="text-brand-orange/80">SNAPP</span>
+          <span className="text-brand-red/80">RETAIL</span>
         </p>
       </div>
     </main>

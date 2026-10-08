@@ -74,7 +74,7 @@ export function DonutChart({ title, centerLabel, segments, note }: DonutChartPro
           </svg>
           <div className="absolute inset-0 grid place-items-center">
             <div className="text-center">
-              <span className="block font-mono text-[24px] font-bold leading-none text-white">
+            <span className="value-tag text-[20px] font-bold">
                 {total > 0 ? total.toLocaleString() : "—"}
               </span>
               <span className="mt-1.5 block text-[8.5px] font-bold uppercase tracking-[0.18em] text-white/40">

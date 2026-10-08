@@ -9,10 +9,10 @@ const ITEMS = [
     icon: Server,
     text: (
       <>
-        This terminal connects to monitoring.
+        This terminal connects to
         <span className="text-brand-orange">snapp</span>
         <span className="text-brand-red">retail</span>
-        .io — verify network access if sign-in times out.
+        — All rights are reserved.
       </>
     ),
   },
