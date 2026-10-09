@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { LogOut, RefreshCw } from "lucide-react";
+import { History,LogOut, RefreshCw } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface TopbarProps {
   username: string;
@@ -24,6 +25,7 @@ export function Topbar({
   onRefresh,
   onLogout,
 }: TopbarProps) {
+  const router = useRouter();
   return (
     <header className="sticky top-0 z-40 border-b border-white/20 border-t-white/30 bg-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.25)] backdrop-blur-2xl">
       <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-4 px-6">
@@ -63,14 +65,14 @@ export function Topbar({
             {live ? "Live" : "Idle"}
           </span>
 
-          {/* Sync Button */}
+          {/* Session Review Button */}
           <button
             type="button"
-            onClick={onRefresh}
-            title="Check now"
-            className="grid h-9 w-9 place-items-center rounded-xl border border-white/20 border-t-white/40 bg-white/10 text-white/80 backdrop-blur-xl transition hover:bg-white/20 hover:text-white active:scale-[0.98]"
+            onClick={() => router.push("/session-review")}
+            className="inline-flex h-9 items-center gap-2 rounded-xl border border-white/20 border-t-white/40 bg-white/10 px-3.5 text-xs font-semibold text-white/90 backdrop-blur-xl transition hover:bg-white/20 active:scale-[0.98]"
           >
-            <RefreshCw className="h-4 w-4" />
+            <History className="h-4 w-4 text-cyan-300" />
+            <span>Session Review</span>
           </button>
 
           {/* Sync Status Banner */}

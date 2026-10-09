@@ -119,4 +119,12 @@ import type {
     return (await res.json()) as StopStreamResponse;
   }
 
-  
+  // session review api setup
+export async function getSessionReview(date: string, sessionId?: string) {
+  const url = sessionId
+    ? `${BACKEND_ORIGIN}/api/session-review?date=${date}&session_id=${sessionId}`
+    : `${BACKEND_ORIGIN}/api/session-review?date=${date}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new ApiError("Failed to fetch session review", res.status);
+  return res.json();
+}
