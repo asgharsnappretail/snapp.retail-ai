@@ -95,7 +95,11 @@ export function useWhep() {
 
         const res = await fetch("/whep", {
           method: "POST",
-          headers: { "Content-Type": "application/sdp" },
+          headers: { 
+            "ngrok-skip-browser-warning": "69420",
+            "User-Agent": "Custom-Agent",
+            "Content-Type": "application/sdp"
+          },
           body: conn.localDescription?.sdp ?? "",
         });
         if (!res.ok) throw new Error(`WHEP ${res.status}`);
