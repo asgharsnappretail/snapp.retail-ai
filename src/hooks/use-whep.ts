@@ -58,7 +58,11 @@ export function useWhep() {
       if (pc) { try { pc.close(); } catch {} pc = null; }
 
       try {
-        pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+        pc = new RTCPeerConnection({
+          iceServers: [
+            { urls: "stun:stun.l.google.com:19302" }
+          ]
+        });
       } catch {
         setStatus("offline");
         return;
@@ -96,9 +100,8 @@ export function useWhep() {
         const res = await fetch("/whep", {
           method: "POST",
           headers: { 
-            "ngrok-skip-browser-warning": "69420",
-            "User-Agent": "Custom-Agent",
-            "Content-Type": "application/sdp"
+            "Content-Type": "application/sdp",
+            "ngrok-skip-browser-warning": "true",
           },
           body: conn.localDescription?.sdp ?? "",
         });
