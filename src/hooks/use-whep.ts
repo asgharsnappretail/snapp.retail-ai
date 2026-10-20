@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export type WhepStatus = "connecting" | "live" | "reconnecting" | "offline";
 
-const ICE_SERVERS: RTCIceServer[] = [{ urls: "stun:stun.l.google.com:19302" }];
 const GATHER_TIMEOUT_MS = 2000;
 
 function waitForIce(pc: RTCPeerConnection, timeoutMs = GATHER_TIMEOUT_MS) {
@@ -31,6 +30,20 @@ export function useWhep() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+  // 1. Change this at the top - increase timeout because TURN/TCP is slower
+  const GATHER_TIMEOUT_MS = 4000;
+
+  const ICE_SERVERS: RTCIceServer[] = [
+    { urls: "stun:stun.l.google.com:19302" },
+    {
+      urls: [
+        `turn:${process.env.NEXT_PUBLIC_TURN_URL}:3478?transport=udp`,
+        `turn:${process.env.NEXT_PUBLIC_TURN_URL}:3478?transport=tcp`
+      ],
+      username: process.env.NEXT_PUBLIC_TURN_USER,
+      credential: process.env.NEXT_PUBLIC_TURN_PASS,
+    },
+  ];
   const attachVideo = useCallback((el: HTMLVideoElement | null) => {
     videoRef.current = el;
     if (el && streamRef.current && el.srcObject !== streamRef.current) {
@@ -59,9 +72,8 @@ export function useWhep() {
 
       try {
         pc = new RTCPeerConnection({
-          iceServers: [
-            { urls: "stun:stun.l.google.com:19302" }
-          ]
+          iceServers: ICE_SERVERS,
+          iceTransportPolicy: "all", // allow host + srflx + relay
         });
       } catch {
         setStatus("offline");
