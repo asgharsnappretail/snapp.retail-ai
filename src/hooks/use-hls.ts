@@ -36,10 +36,15 @@ export function useHls(streamUrl: string) {
       if (Hls.isSupported()) {
         const hls = new Hls({
           enableWorker: true,
-          lowLatencyMode: false, // Standard HLS prevents socket flooding
+          lowLatencyMode: false,
           backBufferLength: 10,
           maxBufferLength: 6,
           maxMaxBufferLength: 10,
+          // Injects the bypass header. Since the request is proxied through Vercel (/cam/...),
+          // it is same-origin and will NOT trigger any CORS preflight errors!
+          xhrSetup: (xhr) => {
+            xhr.setRequestHeader('ngrok-skip-browser-warning', 'true');
+          },
         });
 
         hlsRef.current = hls;
@@ -54,7 +59,6 @@ export function useHls(streamUrl: string) {
             .play()
             .then(() => setStatus('live'))
             .catch(() => {
-              // Wait for user interaction if browser policy blocks autoplay
               setStatus('live');
             });
         });

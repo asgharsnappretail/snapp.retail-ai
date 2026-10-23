@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
-const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
-const NGROK_HLS_BASE = "https://fritter-uncolored-stability.ngrok-free.dev";
+const BACKEND_URL = process.env.BACKEND_URL;
+const NGROK_HLS_BASE = process.env.NGROK_HLS_BASE;
 
 const nextConfig = {
   typescript: {
