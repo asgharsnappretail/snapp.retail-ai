@@ -2,22 +2,45 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  CheckCircle2, Download, Loader2, Power, Radio, RefreshCw, RotateCcw, Square,
+  CheckCircle2,
+  Download,
+  Loader2,
+  Power,
+  Radio,
+  RefreshCw,
+  RotateCcw,
+  Square,
 } from "lucide-react";
 
 import { ScannerZoneModal } from "./scanner-zone-modal";
-import { useWhep, type WhepStatus } from "@/hooks/use-whep";
+import { useHls, type HlsStatus } from "@/hooks/use-hls";
 import { BACKEND_ORIGIN, stopStream } from "@/lib/api";
 import type { LatestStats } from "@/types/api";
 
-/** MJPEG surveillance stream — fetched directly by the browser. */
+/** Proxied stream path matching next.config.mjs rewrite */
+const DEFAULT_STREAM_URL = "/cam/index.m3u8";
+const STREAM_URL = process.env.NEXT_PUBLIC_STREAM_URL || DEFAULT_STREAM_URL;
+
+/** MJPEG surveillance stream — fetched directly by the browser */
 const VIDEO_FEED_URL = `${BACKEND_ORIGIN}/video-feed`;
 
-const WHEP_PILL: Record<WhepStatus, { label: string; cls: string }> = {
-  connecting: { label: "Connecting", cls: "border-amber-300/40 bg-amber-400/20 text-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.2)]" },
-  live: { label: "WHEP Live", cls: "border-emerald-300/40 bg-emerald-400/20 text-emerald-200 shadow-[0_0_12px_rgba(52,211,153,0.2)]" },
-  reconnecting: { label: "Reconnecting", cls: "border-amber-300/40 bg-amber-400/20 text-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.2)]" },
-  offline: { label: "Offline", cls: "border-red-300/40 bg-red-500/20 text-red-200 shadow-[0_0_12px_rgba(239,68,68,0.2)]" },
+const HLS_PILL: Record<HlsStatus, { label: string; cls: string }> = {
+  connecting: {
+    label: "Connecting",
+    cls: "border-amber-300/40 bg-amber-400/20 text-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.2)]",
+  },
+  live: {
+    label: "HLS Live",
+    cls: "border-emerald-300/40 bg-emerald-400/20 text-emerald-200 shadow-[0_0_12px_rgba(52,211,153,0.2)]",
+  },
+  reconnecting: {
+    label: "Reconnecting",
+    cls: "border-amber-300/40 bg-amber-400/20 text-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.2)]",
+  },
+  offline: {
+    label: "Offline",
+    cls: "border-red-300/40 bg-red-500/20 text-red-200 shadow-[0_0_12px_rgba(239,68,68,0.2)]",
+  },
 };
 
 interface VideoPanelProps {
@@ -27,10 +50,13 @@ interface VideoPanelProps {
 }
 
 export function VideoPanel({ stats, onStarted, onStopped }: VideoPanelProps) {
-  const { status, attachVideo } = useWhep();
+  const { status, attachVideo } = useHls(STREAM_URL);
   const [zoneOpen, setZoneOpen] = useState(false);
   const [surveillance, setSurveillance] = useState(false);
-  const [session, setSession] = useState<{ session_id: string; recording_filename?: string } | null>(null);
+  const [session, setSession] = useState<{
+    session_id: string;
+    recording_filename?: string;
+  } | null>(null);
   const [confirmStop, setConfirmStop] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [ended, setEnded] = useState<{ download_url: string | null } | null>(null);
@@ -41,7 +67,7 @@ export function VideoPanel({ stats, onStarted, onStopped }: VideoPanelProps) {
   const startedLocallyRef = useRef(false);
   const enteredAtRef = useRef(0);
 
-  const whep = WHEP_PILL[status];
+  const pill = HLS_PILL[status] || HLS_PILL.offline;
   const sessionId = session?.session_id || stats?.session_id;
 
   /* Auto-attach / Detach logic */
@@ -49,6 +75,7 @@ export function VideoPanel({ stats, onStarted, onStopped }: VideoPanelProps) {
     if (stats?.is_streaming && !surveillance && !ended) {
       enteredAtRef.current = Date.now();
       startedLocallyRef.current = false;
+      onStopped?.();
       setSurveillance(true);
       setSession(null);
     } else if (
@@ -118,7 +145,6 @@ export function VideoPanel({ stats, onStarted, onStopped }: VideoPanelProps) {
   function reconnectFeed() {
     setFeedNonce((n) => n + 1);
     setFeedError(false);
-    onStopped?.();
   }
 
   return (
@@ -164,9 +190,11 @@ export function VideoPanel({ stats, onStarted, onStopped }: VideoPanelProps) {
             </>
           ) : (
             <>
-              <span className={`inline-flex items-center gap-1.5 rounded-full border border-t-white/30 border-l-white/30 backdrop-blur-xl px-3 py-1 text-[10px] font-bold tracking-wider ${whep.cls}`}>
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full border border-t-white/30 border-l-white/30 backdrop-blur-xl px-3 py-1 text-[10px] font-bold tracking-wider ${pill.cls}`}
+              >
                 {status !== "live" && <Loader2 className="h-3 w-3 animate-spin" />}
-                {whep.label}
+                {pill.label}
               </span>
               <button
                 type="button"
@@ -197,7 +225,13 @@ export function VideoPanel({ stats, onStarted, onStopped }: VideoPanelProps) {
             />
           )
         ) : (
-          <video ref={attachVideo} muted autoPlay playsInline className="h-full w-full object-cover" />
+          <video
+            ref={attachVideo}
+            muted
+            autoPlay
+            playsInline
+            className="h-full w-full object-cover"
+          />
         )}
 
         {/* HUD Overlay */}
@@ -225,7 +259,7 @@ export function VideoPanel({ stats, onStarted, onStopped }: VideoPanelProps) {
             {stats?.video_timestamp ?? ""}
           </span>
           <span className="absolute bottom-4 right-6 font-mono text-[10px] text-white/60 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
-            {surveillance ? "MJPEG · /video-feed" : "WebRTC · WHEP"}
+            {surveillance ? "MJPEG · /video-feed" : "HLS · Stream"}
           </span>
         </div>
 
@@ -266,15 +300,15 @@ export function VideoPanel({ stats, onStarted, onStopped }: VideoPanelProps) {
           </div>
         )}
 
-        {/* WHEP Connecting Glass Overlay */}
+        {/* HLS Connecting Glass Overlay */}
         {!surveillance && status !== "live" && (
           <div className="absolute inset-0 grid place-items-center bg-slate-950/60 backdrop-blur-md">
             <div className="flex flex-col items-center gap-3">
               <Loader2 className="h-7 w-7 animate-spin text-cyan-300" />
               <p className="text-sm font-medium text-white/90">
-                {status === "offline" ? "Stream offline — retrying" : "Establishing WebRTC connection…"}
+                {status === "offline" ? "Stream offline — retrying" : "Connecting to stream…"}
               </p>
-              <p className="font-mono text-xs text-white/50">cam/whep · auto-reconnect</p>
+              <p className="font-mono text-xs text-white/50">cam/index.m3u8 · pure HTTP/TCP</p>
             </div>
           </div>
         )}
@@ -283,8 +317,12 @@ export function VideoPanel({ stats, onStarted, onStopped }: VideoPanelProps) {
         {surveillance && confirmStop && (
           <div className="absolute inset-0 z-20 grid place-items-center bg-slate-950/60 backdrop-blur-lg">
             <div className="rounded-2xl border border-white/20 border-t-white/30 bg-white/10 p-6 text-center shadow-[0_16px_48px_0_rgba(0,0,0,0.4)] backdrop-blur-2xl">
-              <p className="text-sm font-semibold text-white">Stop surveillance and finalize the recording?</p>
-              <p className="mt-1 font-mono text-xs text-white/60">SESSION {sessionId || "—"} · POST /stop-stream</p>
+              <p className="text-sm font-semibold text-white">
+                Stop surveillance and finalize the recording?
+              </p>
+              <p className="mt-1 font-mono text-xs text-white/60">
+                SESSION {sessionId || "—"} · POST /stop-stream
+              </p>
               <div className="mt-5 flex justify-center gap-3">
                 <button
                   type="button"
@@ -299,7 +337,11 @@ export function VideoPanel({ stats, onStarted, onStopped }: VideoPanelProps) {
                   disabled={stopping}
                   className="inline-flex h-9 items-center gap-2 rounded-xl border border-red-400/40 bg-red-500/20 px-4 text-xs font-bold text-red-200 backdrop-blur-xl shadow-lg transition hover:bg-red-500/30"
                 >
-                  {stopping ? <Loader2 className="h-4 w-4 animate-spin" /> : <Square className="h-4 w-4" />}
+                  {stopping ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Square className="h-4 w-4" />
+                  )}
                   {stopping ? "Stopping…" : "Stop Now"}
                 </button>
               </div>
@@ -315,7 +357,9 @@ export function VideoPanel({ stats, onStarted, onStopped }: VideoPanelProps) {
                 <CheckCircle2 className="h-6 w-6" />
               </span>
               <p className="mt-3 text-base font-semibold text-white">Session Ended</p>
-              <p className="mt-1 font-mono text-xs text-white/60">SESSION {sessionId || "—"}</p>
+              <p className="mt-1 font-mono text-xs text-white/60">
+                SESSION {sessionId || "—"}
+              </p>
               {ended.download_url ? (
                 <a
                   href={ended.download_url}
@@ -325,7 +369,9 @@ export function VideoPanel({ stats, onStarted, onStopped }: VideoPanelProps) {
                   <Download className="h-4 w-4" /> Download Recording
                 </a>
               ) : (
-                <p className="mt-4 text-xs text-white/60">No recording link was returned by the server.</p>
+                <p className="mt-4 text-xs text-white/60">
+                  No recording link was returned by the server.
+                </p>
               )}
               <button
                 type="button"

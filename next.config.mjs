@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
-const BACKEND_URL = process.env.BACKEND_URL ;
-const WHEP_URL = process.env.WHEP_URL;
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
+const NGROK_HLS_BASE = "https://fritter-uncolored-stability.ngrok-free.dev";
 
 const nextConfig = {
   typescript: {
@@ -9,37 +9,27 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  reactStrictMode: false,
   async rewrites() {
     return [
       {
         source: "/backend/:path*",
         destination: `${BACKEND_URL}/:path*`,
       },
+      // Handles /hls/cam/index.m3u8 -> Ngrok /cam/index.m3u8
       {
-        source: "/whep",
-        destination: WHEP_URL,
+        source: "/hls/cam/:path*",
+        destination: `${NGROK_HLS_BASE}/cam/:path*`,
       },
-    ];
-  },
-  async headers() {
-    return [
+      // Handles /cam/index.m3u8 -> Ngrok /cam/index.m3u8
       {
-        source: "/whep",
-        headers: [
-          {
-            key: "ngrok-skip-browser-warning",
-            value: "true",
-          },
-        ],
+        source: "/cam/:path*",
+        destination: `${NGROK_HLS_BASE}/cam/:path*`,
       },
+      // Fallback for any other /hls/ path
       {
-        source: "/backend/:path*",
-        headers: [
-          {
-            key: "ngrok-skip-browser-warning",
-            value: "true",
-          },
-        ],
+        source: "/hls/:path*",
+        destination: `${NGROK_HLS_BASE}/cam/:path*`,
       },
     ];
   },
